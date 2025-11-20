@@ -22,13 +22,14 @@ namespace System.Formats.Tar
         /// <param name="sourceDirectoryName">The path of the directory to archive.</param>
         /// <param name="destination">The destination stream the archive.</param>
         /// <param name="includeBaseDirectory"><see langword="true"/> to include the base directory name as the first segment in all the names of the archive entries. <see langword="false"/> to exclude the base directory name from the archive entry names.</param>
+        /// <param name="format">The tar entry format to use when creating the archive. This value determines the style of the archive headers (for example, <see cref="TarEntryFormat.Pax"/>, <see cref="TarEntryFormat.Ustar"/>, or <see cref="TarEntryFormat.Gnu"/>).</param>
         /// <exception cref="ArgumentNullException"><paramref name="sourceDirectoryName"/> or <paramref name="destination"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentException"><para><paramref name="sourceDirectoryName"/> is empty.</para>
         /// <para>-or-</para>
         /// <para><paramref name="destination"/> does not support writing.</para></exception>
         /// <exception cref="DirectoryNotFoundException">The <paramref name="sourceDirectoryName"/> directory path was not found.</exception>
         /// <exception cref="IOException">An I/O exception occurred.</exception>
-        public static void CreateFromDirectory(string sourceDirectoryName, Stream destination, bool includeBaseDirectory)
+        public static void CreateFromDirectory(string sourceDirectoryName, Stream destination, bool includeBaseDirectory, TarEntryFormat format = TarEntryFormat.Pax)
         {
             ArgumentException.ThrowIfNullOrEmpty(sourceDirectoryName);
             ArgumentNullException.ThrowIfNull(destination);
@@ -43,10 +44,9 @@ namespace System.Formats.Tar
                 throw new DirectoryNotFoundException(SR.Format(SR.IO_PathNotFound_Path, sourceDirectoryName));
             }
 
-            // Rely on Path.GetFullPath for validation of paths
             sourceDirectoryName = Path.GetFullPath(sourceDirectoryName);
 
-            CreateFromDirectoryInternal(sourceDirectoryName, destination, includeBaseDirectory, leaveOpen: true);
+            CreateFromDirectoryInternal(sourceDirectoryName, destination, includeBaseDirectory, leaveOpen: true, format);
         }
 
         /// <summary>
@@ -323,11 +323,11 @@ namespace System.Formats.Tar
 
         // Creates an archive from the contents of a directory.
         // It assumes the sourceDirectoryName is a fully qualified path, and allows choosing if the archive stream should be left open or not.
-        private static void CreateFromDirectoryInternal(string sourceDirectoryName, Stream destination, bool includeBaseDirectory, bool leaveOpen)
+        private static void CreateFromDirectoryInternal(string sourceDirectoryName, Stream destination, bool includeBaseDirectory, bool leaveOpen, TarEntryFormat format)
         {
             VerifyCreateFromDirectoryArguments(sourceDirectoryName, destination);
 
-            using (TarWriter writer = new TarWriter(destination, TarEntryFormat.Pax, leaveOpen))
+            using (TarWriter writer = new TarWriter(destination, format, leaveOpen))
             {
                 DirectoryInfo di = new(sourceDirectoryName);
 
