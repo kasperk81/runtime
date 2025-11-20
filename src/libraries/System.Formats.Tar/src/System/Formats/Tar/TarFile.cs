@@ -44,6 +44,7 @@ namespace System.Formats.Tar
                 throw new DirectoryNotFoundException(SR.Format(SR.IO_PathNotFound_Path, sourceDirectoryName));
             }
 
+            // Rely on Path.GetFullPath for validation of paths
             sourceDirectoryName = Path.GetFullPath(sourceDirectoryName);
 
             CreateFromDirectoryInternal(sourceDirectoryName, destination, includeBaseDirectory, leaveOpen: true, format);
